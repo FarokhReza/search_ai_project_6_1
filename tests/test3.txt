@@ -1,0 +1,4 @@
+red, red, blue, red, red, 6
+blue, blue, blue, red ,blue, 6
+red, 6
+blue, 6
