@@ -36,3 +36,22 @@ class Search:
             stack.extend(neighbors)
         return None
     
+    
+    @staticmethod
+    
+    def dfs_2(prb: Problem) -> Solution:
+        start_time = datetime.now()
+        stack = []
+        save_state = []
+        state = prb.initState
+        stack.append(state)
+        # save_state.append(state)
+        while len(stack) > 0:
+            state = stack.pop()
+            if state.__hash__() not in save_state:
+                save_state.append(state.__hash__())
+                if prb.is_goal(state):
+                    return Solution(state, prb, start_time)
+                neighbors = prb.successor(state)
+                stack.extend(neighbors)
+        return None
