@@ -26,7 +26,7 @@ class Pipe:
         return False
 
     # def __str__(self):
-        return '{' + ' '.join(self.stack) + '}'      
+    #     return '{' + ' '.join(self.stack) + '}'      
 
 
     def print_pipe(self):
@@ -48,7 +48,7 @@ class Pipe:
     def __hash__(self):
         hash_string = ''
         for i in self.stack:
-            hash_string += str(i)
+            hash_string += str(i) + " "
         return hash_string
     
     
