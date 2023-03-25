@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # for i in p:
     #     print(i.__hash__(), " ")
     # print("++++++++++++")
-    s = Search.ids(Problem(State(p, None, 0, (0, 0))))
+    s = Search.a_star(Problem(State(p, None, 0, (0, 0))))
     s.print_path()
     # # s.execute_gui()
     file.close()
