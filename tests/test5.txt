@@ -1,0 +1,6 @@
+yellow, red, blue, red, red, blue, yellow, 7
+blue, blue, red ,blue,green, 7
+green, green, yellow, green, red,yellow, 7
+red, yellow, green ,yellow, 7
+yellow,green, blue, red, green, blue,7
+7

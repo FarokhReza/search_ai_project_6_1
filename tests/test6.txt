@@ -1,0 +1,6 @@
+yellow, red, blue, red, red, blue, yellow, 8
+blue, blue, red ,blue,green, 8
+green, yellow, green, red,yellow, 8
+red, yellow, green ,yellow, 8
+yellow,green, blue, red, green, blue,8
+red, green, yellow, blue, green,8

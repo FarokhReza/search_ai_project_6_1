@@ -1,3 +1,4 @@
+from Pipe import Pipe
 from Solution import Solution
 from Problem import Problem
 from datetime import datetime
@@ -7,7 +8,8 @@ from State import State
 class Search:
     @staticmethod
 
-    def bfs(prb: Problem) -> Solution:  # this method get a first state of Problem and do bfs for find solution if no
+    def bfs(prb: Problem) -> Solution:  # this method get a first
+        # state of Problem and do bfs for find solution if no
         # solution is find return None else return the solution
         start_time = datetime.now()
         queue = []
@@ -110,37 +112,25 @@ class Search:
             depth += 1
 
     
-    # def get_heuristic_cost(state: State) -> int:
-    #     # calculate heuristic cost using number of pipes that are not one color
-    #     cost = 0
-    #     for pipe in state.pipes:
-    #         if not pipe.is_one_color():
-    #             cost += 1
-    #     return cost
-
-
-    # def get_heuristic_cost(state: State) -> int:
-    #     h_cost = 0
-    #     for pipe in state.pipes:
-    #         if not pipe.is_one_color():
-    #             h_cost += 1
-    #         if not (pipe.is_full() or pipe.is_empty()):
-    #             h_cost += 1
-    #     for pipe in state.pipes:
-    #         for ball in pipe.stack:
-    #             if ball != pipe.stack[-1]:
-    #                 h_cost += 1
-    #     return h_cost
-    
-
     def get_heuristic_cost(state: State) -> int:
         h_cost = 0
+
+        for pipe in state.pipes:
+            if pipe.is_one_color():
+                h_cost += 20
+
+        for pipe in state.pipes:
+            if pipe.is_empty():
+                h_cost += 10
         
         for pipe in state.pipes:
             for ball in pipe.stack:
                 if ball != pipe.stack[-1]:
-                    h_cost += 1
+                    h_cost -= 1
+
         return h_cost
+
+
     @staticmethod
     def a_star(prb: Problem) -> Solution:
         start_time = datetime.now()
@@ -150,11 +140,12 @@ class Search:
         # initialize start state
         start_state.g_n = 0
         start_state_h_n = Search.get_heuristic_cost(start_state)
-        start_state.priority = start_state.g_n + start_state_h_n
+        # print(start_state_h_n)
+        start_state.priority = start_state_h_n
         open_set.append(start_state)
 
         while open_set:
-            current_state = min(open_set, key=lambda x:x.priority)
+            current_state = max(open_set, key=lambda x:x.priority)
             open_set.remove(current_state)
             if prb.is_goal(current_state):
                 return Solution(current_state, prb, start_time)
@@ -162,12 +153,13 @@ class Search:
             for successor in prb.successor(current_state):
                 if successor.__hash__() in closed_set:
                     continue
-                successor_g_n = current_state.g_n + prb.get_cost_from_change(current_state, successor.prev_action[0])
+                successor_g_n = current_state.g_n + prb.get_cost_from_change(
+                    current_state, successor.prev_action[0])
                 if successor not in open_set:
                     successor.h_n = Search.get_heuristic_cost(successor)
-                    successor_g_n_h_n = successor_g_n + successor.h_n
+                    successor_f_n = successor_g_n + successor.h_n
                     successor.g_n = successor_g_n
-                    successor.priority = successor_g_n_h_n
+                    successor.priority = successor_f_n
                     open_set.append(successor)
                 else:
                     if successor_g_n < successor.g_n:
