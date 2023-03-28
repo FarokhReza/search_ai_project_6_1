@@ -136,7 +136,6 @@ class Search:
 
         return None                        
 
-
     def get_heuristic_cost(state: State) -> int:
         h_cost = 0
 
@@ -162,12 +161,13 @@ class Search:
         save_state = []
         state = prb.initState
         state.g_n = 0
-        state_h_n = Search.get_heuristic_cost(state)
-        state.priority = state_h_n
+        
+        h_n = Search.get_heuristic_cost(state)
+        state.f_n = h_n
         my_list.append(state)
 
         while len(my_list):
-            state = max(my_list, key=lambda x:x.priority)
+            state = max(my_list, key=lambda x:x.f_n)
             my_list.remove(state)
             if prb.is_goal(state):
                 return Solution(state, prb, start_time)
@@ -181,14 +181,14 @@ class Search:
                     successor.h_n = Search.get_heuristic_cost(successor)
                     f_n = g_n + successor.h_n
                     successor.g_n = g_n
-                    successor.priority = f_n
+                    successor.f_n = f_n
                     my_list.append(successor)
                 else:
                     if g_n < successor.g_n:
                         successor.g_n = g_n
                         h_n = Search.get_heuristic_cost(successor)
                         f_n = h_n + g_n
-                        successor.priority = f_n
+                        successor.f_n = f_n
 
         return None
     
@@ -199,10 +199,10 @@ class Search:
         save_state = []
         state = prb.initState
         state.g_n = 0
-        state_h_n = Search.get_heuristic_cost(state)
-        state.priority = state_h_n
+        h_n = Search.get_heuristic_cost(state)
+        state.f_n = h_n
         my_list.append(state)
-        depth = state_h_n
+        depth = h_n
 
         while True:
             result, new_depth = Search.search(prb, my_list, save_state, depth, start_time)
@@ -213,10 +213,10 @@ class Search:
             depth = new_depth
 
     @staticmethod
-    def search(prb: Problem, my_list, save_state, depth_limit, start_time):
-        f_limit = depth_limit
+    def search(prb: Problem, my_list, save_state, depth, start_time):
+        f_limit = depth
         min_f = float('inf')
-        state = my_list[-1]
+        state = max(my_list, key=lambda x:x.f_n)
         if state in save_state:
             return None, f_limit
         if prb.is_goal(state):
@@ -224,18 +224,24 @@ class Search:
         for successor in prb.successor(state):
             if successor.__hash__() in save_state:
                 continue
-            g_n = state.g_n + prb.get_cost_from_change(state, successor.prev_action[0])
-            successor.g_n = g_n
+
+            g_n = state.g_n + prb.get_cost_from_change(
+                state, successor.prev_action[0])
             successor.h_n = Search.get_heuristic_cost(successor)
             f_n = g_n + successor.h_n
+            successor.g_n = g_n
+            successor.f_n = f_n
+            my_list.append(successor)
+
             if f_n > f_limit:
                 min_f = min(min_f, f_n)
                 continue
+            
             if prb.is_goal(successor):
                 return Solution(successor, prb, start_time), f_limit
-            my_list.append(successor)
+            
             save_state.append(successor.__hash__())
-            result, new_f_limit = Search.search(prb, my_list, save_state, depth_limit, start_time)
+            result, new_f_limit = Search.search(prb, my_list, save_state, depth, start_time)
             if result is not None:
                 return result, f_limit
             if new_f_limit < min_f:
