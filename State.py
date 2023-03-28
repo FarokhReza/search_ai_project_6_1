@@ -1,5 +1,4 @@
 # this class only for the first time setup init state for problem and is given to every search
-# به عنوان تابع هش اصلاح شود تا در لوپ نیافتد
 
 class State:
     def __init__(self, pipes: list, parent, g_n: int, prev_action: tuple):

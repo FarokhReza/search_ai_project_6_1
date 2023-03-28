@@ -1,3 +1,0 @@
-blue,blue,blue, 3
-red, red,red,3
-3

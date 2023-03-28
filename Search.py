@@ -1,4 +1,3 @@
-from Pipe import Pipe
 from Solution import Solution
 from Problem import Problem
 from datetime import datetime
@@ -6,8 +5,8 @@ from State import State
 
 
 class Search:
-    @staticmethod
 
+    @staticmethod
     def bfs(prb: Problem) -> Solution:  # this method get a first
         # state of Problem and do bfs for find solution if no
         # solution is find return None else return the solution
@@ -15,7 +14,7 @@ class Search:
         queue = []
         state = prb.initState
         queue.append(state)
-        while len(queue) > 0:
+        while len(queue):
             state = queue.pop(0)
             neighbors = prb.successor(state)
             for c in neighbors:
@@ -25,13 +24,12 @@ class Search:
         return None
 
     @staticmethod
-
     def dfs(prb: Problem) -> Solution:
         start_time = datetime.now()
         stack = []
         state = prb.initState
         stack.append(state)
-        while len(stack) > 0:
+        while len(stack):
             state = stack.pop()
             if prb.is_goal(state):
                 return Solution(state, prb, start_time)
@@ -39,8 +37,7 @@ class Search:
             stack.extend(neighbors)
         return None
        
-    @staticmethod
-    
+    @staticmethod 
     def dfs_2(prb: Problem) -> Solution:
         start_time = datetime.now()
         stack = []
@@ -48,7 +45,7 @@ class Search:
         state = prb.initState
         stack.append(state)
         # save_state.append(state)
-        while len(stack) > 0:
+        while len(stack):
             state = stack.pop()
             if state.__hash__() not in save_state:
                 save_state.append(state.__hash__())
@@ -57,9 +54,6 @@ class Search:
                 neighbors = prb.successor(state)
                 stack.extend(neighbors)
         return None
-
-
-    @staticmethod
 
     def dfs_limited_depth(prb: Problem, depth: int, start_time: datetime) -> Solution:
         stack = []
@@ -101,7 +95,6 @@ class Search:
         return None
 
     @staticmethod
-
     def ids(prb: Problem) -> Solution:
         start_time = datetime.now()
         depth = 0
@@ -111,7 +104,39 @@ class Search:
                 return result
             depth += 1
 
-    
+    @staticmethod
+    def ucs(prb: Problem):
+        start_time = datetime.now()
+        my_list = []
+        save_state = []
+        state = prb.initState
+        state.g_n = 0
+        my_list.append(state)
+
+        while len(my_list):
+            state = min(my_list, key=lambda x:x.g_n)
+            my_list.remove(state)
+            if prb.is_goal(state):
+                return Solution(state, prb, start_time)
+            
+            if state.__hash__() in save_state:
+                continue
+            save_state.append(state.__hash__())
+            for successor in prb.successor(state):
+                if successor.__hash__() in save_state:
+                    continue
+                g_n = state.g_n + prb.get_cost_from_change(
+                    state, successor.prev_action[0])
+                if successor not in my_list:
+                    successor.g_n = g_n
+                    my_list.append(successor)
+                else:
+                    if g_n < successor.g_n:
+                        successor.g_n = g_n
+
+        return None                        
+
+
     def get_heuristic_cost(state: State) -> int:
         h_cost = 0
 
@@ -130,44 +155,93 @@ class Search:
 
         return h_cost
 
-
     @staticmethod
     def a_star(prb: Problem) -> Solution:
         start_time = datetime.now()
-        open_set = []
-        closed_set = set()
-        start_state = prb.initState
-        # initialize start state
-        start_state.g_n = 0
-        start_state_h_n = Search.get_heuristic_cost(start_state)
-        # print(start_state_h_n)
-        start_state.priority = start_state_h_n
-        open_set.append(start_state)
+        my_list = []
+        save_state = []
+        state = prb.initState
+        state.g_n = 0
+        state_h_n = Search.get_heuristic_cost(state)
+        state.priority = state_h_n
+        my_list.append(state)
 
-        while open_set:
-            current_state = max(open_set, key=lambda x:x.priority)
-            open_set.remove(current_state)
-            if prb.is_goal(current_state):
-                return Solution(current_state, prb, start_time)
-            closed_set.add(current_state.__hash__())
-            for successor in prb.successor(current_state):
-                if successor.__hash__() in closed_set:
+        while len(my_list):
+            state = max(my_list, key=lambda x:x.priority)
+            my_list.remove(state)
+            if prb.is_goal(state):
+                return Solution(state, prb, start_time)
+            save_state.append(state.__hash__())
+            for successor in prb.successor(state):
+                if successor.__hash__() in save_state:
                     continue
-                successor_g_n = current_state.g_n + prb.get_cost_from_change(
-                    current_state, successor.prev_action[0])
-                if successor not in open_set:
+                g_n = state.g_n + prb.get_cost_from_change(
+                    state, successor.prev_action[0])
+                if successor not in my_list:
                     successor.h_n = Search.get_heuristic_cost(successor)
-                    successor_f_n = successor_g_n + successor.h_n
-                    successor.g_n = successor_g_n
-                    successor.priority = successor_f_n
-                    open_set.append(successor)
+                    f_n = g_n + successor.h_n
+                    successor.g_n = g_n
+                    successor.priority = f_n
+                    my_list.append(successor)
                 else:
-                    if successor_g_n < successor.g_n:
-                        successor.g_n = successor_g_n
-                        successor_h_n = Search.get_heuristic_cost(successor)
-                        successor_f_n = successor_h_n + successor_g_n
-                        successor.priority = successor_f_n
+                    if g_n < successor.g_n:
+                        successor.g_n = g_n
+                        h_n = Search.get_heuristic_cost(successor)
+                        f_n = h_n + g_n
+                        successor.priority = f_n
 
         return None
+    
+    @staticmethod
+    def ida_star(prb: Problem) -> Solution:
+        start_time = datetime.now()
+        my_list = []
+        save_state = []
+        state = prb.initState
+        state.g_n = 0
+        state_h_n = Search.get_heuristic_cost(state)
+        state.priority = state_h_n
+        my_list.append(state)
+        depth = state_h_n
+
+        while True:
+            result, new_depth = Search.search(prb, my_list, save_state, depth, start_time)
+            if result is not None:
+                return result
+            if new_depth == float('inf'):
+                return None
+            depth = new_depth
+
+    @staticmethod
+    def search(prb: Problem, my_list, save_state, depth_limit, start_time):
+        f_limit = depth_limit
+        min_f = float('inf')
+        state = my_list[-1]
+        if state in save_state:
+            return None, f_limit
+        if prb.is_goal(state):
+            return Solution(state, prb, start_time), f_limit
+        for successor in prb.successor(state):
+            if successor.__hash__() in save_state:
+                continue
+            g_n = state.g_n + prb.get_cost_from_change(state, successor.prev_action[0])
+            successor.g_n = g_n
+            successor.h_n = Search.get_heuristic_cost(successor)
+            f_n = g_n + successor.h_n
+            if f_n > f_limit:
+                min_f = min(min_f, f_n)
+                continue
+            if prb.is_goal(successor):
+                return Solution(successor, prb, start_time), f_limit
+            my_list.append(successor)
+            save_state.append(successor.__hash__())
+            result, new_f_limit = Search.search(prb, my_list, save_state, depth_limit, start_time)
+            if result is not None:
+                return result, f_limit
+            if new_f_limit < min_f:
+                min_f = new_f_limit
+            my_list.pop()
+            save_state.pop()
+        return None, min_f
 
     
