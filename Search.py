@@ -122,17 +122,12 @@ class Search:
             if state.__hash__() in save_state:
                 continue
             save_state.append(state.__hash__())
-            for successor in prb.successor(state):
-                if successor.__hash__() in save_state:
+            for current_state in prb.successor(state):
+                if current_state.__hash__() in save_state:
                     continue
-                g_n = state.g_n + prb.get_cost_from_change(
-                    state, successor.prev_action[0])
-                if successor not in my_list:
-                    successor.g_n = g_n
-                    my_list.append(successor)
-                else:
-                    if g_n < successor.g_n:
-                        successor.g_n = g_n
+                current_state.g_n = state.g_n + prb.get_cost_from_change(
+                    state, current_state.prev_action[0])
+                my_list.append(current_state)
 
         return None                        
 
@@ -154,6 +149,7 @@ class Search:
 
         return h_cost
 
+    
     @staticmethod
     def a_star(prb: Problem) -> Solution:
         start_time = datetime.now()
@@ -161,9 +157,8 @@ class Search:
         save_state = []
         state = prb.initState
         state.g_n = 0
-        
-        h_n = Search.get_heuristic_cost(state)
-        state.f_n = h_n
+        state.h_n = Search.get_heuristic_cost(state)
+        state.f_n = state.h_n + state.g_n
         my_list.append(state)
 
         while len(my_list):
@@ -172,23 +167,14 @@ class Search:
             if prb.is_goal(state):
                 return Solution(state, prb, start_time)
             save_state.append(state.__hash__())
-            for successor in prb.successor(state):
-                if successor.__hash__() in save_state:
+            for current_state in prb.successor(state):
+                if current_state.__hash__() in save_state:
                     continue
-                g_n = state.g_n + prb.get_cost_from_change(
-                    state, successor.prev_action[0])
-                if successor not in my_list:
-                    successor.h_n = Search.get_heuristic_cost(successor)
-                    f_n = g_n + successor.h_n
-                    successor.g_n = g_n
-                    successor.f_n = f_n
-                    my_list.append(successor)
-                else:
-                    if g_n < successor.g_n:
-                        successor.g_n = g_n
-                        h_n = Search.get_heuristic_cost(successor)
-                        f_n = h_n + g_n
-                        successor.f_n = f_n
+                current_state.g_n = state.g_n + prb.get_cost_from_change(
+                    state, current_state.prev_action[0])
+                current_state.h_n = Search.get_heuristic_cost(current_state)
+                current_state.f_n = current_state.g_n + current_state.h_n
+                my_list.append(current_state)
 
         return None
     
@@ -199,49 +185,46 @@ class Search:
         save_state = []
         state = prb.initState
         state.g_n = 0
-        h_n = Search.get_heuristic_cost(state)
-        state.f_n = h_n
+        depth = state.h_n = Search.get_heuristic_cost(state)
+        state.f_n = state.h_n + state.g_n
         my_list.append(state)
-        depth = h_n
-
+        min_f = float('inf')
         while True:
-            result, new_depth = Search.search(prb, my_list, save_state, depth, start_time)
+            result, new_depth = Search.search(prb, my_list, save_state, depth, start_time, min_f)
             if result is not None:
                 return result
-            if new_depth == float('inf'):
-                return None
+            # if new_depth == float('inf'):
+            #     return None
             depth = new_depth
 
     @staticmethod
-    def search(prb: Problem, my_list, save_state, depth, start_time):
+    def search(prb: Problem, my_list, save_state, depth, start_time, min_f):
         f_limit = depth
-        min_f = float('inf')
         state = max(my_list, key=lambda x:x.f_n)
+        my_list.remove(state)
         if state in save_state:
             return None, f_limit
         if prb.is_goal(state):
             return Solution(state, prb, start_time), f_limit
-        for successor in prb.successor(state):
-            if successor.__hash__() in save_state:
+        for current_state in prb.successor(state):
+            if current_state.__hash__() in save_state:
                 continue
 
-            g_n = state.g_n + prb.get_cost_from_change(
-                state, successor.prev_action[0])
-            successor.h_n = Search.get_heuristic_cost(successor)
-            f_n = g_n + successor.h_n
-            successor.g_n = g_n
-            successor.f_n = f_n
-            my_list.append(successor)
-
-            if f_n > f_limit:
-                min_f = min(min_f, f_n)
+            current_state.g_n = state.g_n + prb.get_cost_from_change(
+                state, current_state.prev_action[0])
+            current_state.h_n = Search.get_heuristic_cost(current_state)
+            current_state.f_n = current_state.g_n + current_state.h_n
+            my_list.append(current_state)
+           
+            if current_state.f_n > f_limit:
+                min_f = min(min_f, current_state.f_n)
                 continue
             
-            if prb.is_goal(successor):
-                return Solution(successor, prb, start_time), f_limit
+            if prb.is_goal(current_state):
+                return Solution(current_state, prb, start_time), f_limit
             
-            save_state.append(successor.__hash__())
-            result, new_f_limit = Search.search(prb, my_list, save_state, depth, start_time)
+            save_state.append(current_state.__hash__())
+            result, new_f_limit = Search.search(prb, my_list, save_state, depth, start_time, min_f)
             if result is not None:
                 return result, f_limit
             if new_f_limit < min_f:
@@ -250,4 +233,4 @@ class Search:
             save_state.pop()
         return None, min_f
 
-    
+     
