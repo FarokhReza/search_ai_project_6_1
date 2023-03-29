@@ -233,4 +233,63 @@ class Search:
             save_state.pop()
         return None, min_f
 
-     
+    @staticmethod
+    def rbfs(prb: Problem) -> Solution:
+        start_time = datetime.now()
+        save_state = []
+        state = prb.initState
+        state.g_n = 0   
+        state.h_n = Search.get_heuristic_cost(state)
+        state.f_n = state.h_n + state.g_n
+        return Search.rbf_search(prb, state, float('inf'), start_time, save_state)
+
+
+    @staticmethod
+    def rbf_search(prb: Problem, state: State, f_limit: int, start_time: datetime, save_state):
+        if prb.is_goal(state):
+            return Solution(state, prb, start_time)
+
+        states = prb.successor(state)
+        if not states:
+            return None
+
+        for next_state in states:
+            next_state.g_n = state.g_n + prb.get_cost_from_change(state, next_state.prev_action[0])
+            next_state.h_n = Search.get_heuristic_cost(next_state)
+            next_state.f_n = next_state.g_n + next_state.h_n
+
+        while True:
+            best_state = max(states, key=lambda x: x.f_n)
+            if best_state.__hash__() in save_state:
+                continue
+            save_state.append(best_state.__hash__())
+            # f = min(f_limit, best_successor.f_n)
+            f = min(f_limit, max(states, key=lambda x: x.f_n if x != best_state else -float('inf')).f_n)
+            result = Search.rbf_search(prb, best_state, f_limit, start_time, save_state)
+            if result:
+                return result
+            best_state.f_n = float('inf')
+    # @staticmethod
+    # def rbf_search(prb: Problem, state: State, f_limit: int, start_time: datetime):
+    #     if prb.is_goal(state):
+    #         return Solution(state, prb, start_time)
+
+    #     states = prb.successor(state)
+    #     if not states:
+    #         return None
+
+    #     for next_state in states:
+    #         next_state.g_n = state.g_n + prb.get_cost_from_change(state, next_state.prev_action[0])
+    #         next_state.h_n = Search.get_heuristic_cost(next_state)
+    #         next_state.f_n = next_state.g_n + next_state.h_n
+
+    #     while True:
+    #         best_state = max(states, key=lambda x: x.f_n)
+            
+    #         # f = min(f_limit, best_successor.f_n)
+    #         f = min(f_limit, max(states, key=lambda x: x.f_n if x != best_state else -float('inf')).f_n)
+    #         result = Search.rbf_search(prb, best_state, f_limit, start_time)
+    #         if result:
+    #             return result
+    #         best_state.f_n = float('inf')
+            
