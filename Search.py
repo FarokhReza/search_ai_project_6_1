@@ -133,14 +133,14 @@ class Search:
 
     def get_heuristic_cost(state: State) -> int:
         h_cost = 0
-
+        n = state.pipes[0].limit
         for pipe in state.pipes:
             if pipe.is_one_color():
-                h_cost += 20
+                h_cost += 2*n + 1
 
         for pipe in state.pipes:
             if pipe.is_empty():
-                h_cost += 8
+                h_cost += n
 
         
         for pipe in state.pipes:

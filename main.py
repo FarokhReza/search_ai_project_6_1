@@ -4,7 +4,7 @@ from State import State
 from Search import Search
 
 if __name__ == '__main__':
-    test_path = 'tests/test4.txt'
+    test_path = 'tests/test7.txt'
     file = open(test_path, 'r')
     p = []
     for i in file.readlines():
