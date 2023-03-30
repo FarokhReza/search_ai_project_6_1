@@ -140,7 +140,8 @@ class Search:
 
         for pipe in state.pipes:
             if pipe.is_empty():
-                h_cost += 10
+                h_cost += 8
+
         
         for pipe in state.pipes:
             for ball in pipe.stack:
