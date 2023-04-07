@@ -134,7 +134,11 @@ class Search:
     def get_heuristic_cost(state: State) -> int:
         h_cost = 0
         n = state.pipes[0].limit
+        count = 0
+        pipeNo = 0
         for pipe in state.pipes:
+            pipeNo += 1
+            count += len(pipe.stack)
             if pipe.is_one_color():
                 h_cost += 2*n + 1
 
@@ -204,7 +208,9 @@ class Search:
         state = max(my_list, key=lambda x:x.f_n)
         my_list.remove(state)
         if state in save_state:
+            save_state.remove(state)
             return None, f_limit
+        
         if prb.is_goal(state):
             return Solution(state, prb, start_time), f_limit
         for current_state in prb.successor(state):
@@ -251,6 +257,8 @@ class Search:
             return Solution(state, prb, start_time)
 
         states = prb.successor(state)
+
+        # ?
         if not states:
             return None
 
@@ -266,31 +274,9 @@ class Search:
             save_state.append(best_state.__hash__())
             # f = min(f_limit, best_successor.f_n)
             f = min(f_limit, max(states, key=lambda x: x.f_n if x != best_state else -float('inf')).f_n)
-            result = Search.rbf_search(prb, best_state, f_limit, start_time, save_state)
+            result = Search.rbf_search(prb, best_state, f, start_time, save_state)
             if result:
                 return result
             best_state.f_n = float('inf')
-    # @staticmethod
-    # def rbf_search(prb: Problem, state: State, f_limit: int, start_time: datetime):
-    #     if prb.is_goal(state):
-    #         return Solution(state, prb, start_time)
-
-    #     states = prb.successor(state)
-    #     if not states:
-    #         return None
-
-    #     for next_state in states:
-    #         next_state.g_n = state.g_n + prb.get_cost_from_change(state, next_state.prev_action[0])
-    #         next_state.h_n = Search.get_heuristic_cost(next_state)
-    #         next_state.f_n = next_state.g_n + next_state.h_n
-
-    #     while True:
-    #         best_state = max(states, key=lambda x: x.f_n)
-            
-    #         # f = min(f_limit, best_successor.f_n)
-    #         f = min(f_limit, max(states, key=lambda x: x.f_n if x != best_state else -float('inf')).f_n)
-    #         result = Search.rbf_search(prb, best_state, f_limit, start_time)
-    #         if result:
-    #             return result
-    #         best_state.f_n = float('inf')
+    
             
